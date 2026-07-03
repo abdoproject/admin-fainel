@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>لوحة التحكم - متجري</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="css/admin.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo">
+      <div class="logo-icon"><i class="fas fa-store"></i></div>
+      <span class="logo-name">لوحة التحكم</span>
+    </div>
+    <button class="sidebar-close" onclick="toggleSidebar()"><i class="fas fa-times"></i></button>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="#" class="nav-item active" data-section="dashboard" onclick="showSection('dashboard')">
+      <i class="fas fa-chart-pie"></i><span>الرئيسية</span>
+    </a>
+    <a href="#" class="nav-item" data-section="products" onclick="showSection('products')">
+      <i class="fas fa-box"></i><span>المنتجات</span>
+    </a>
+    <a href="#" class="nav-item" data-section="categories" onclick="showSection('categories')">
+      <i class="fas fa-tags"></i><span>الأقسام</span>
+    </a>
+    <a href="#" class="nav-item" data-section="packages" onclick="showSection('packages')">
+      <i class="fas fa-cubes"></i><span>الباقات</span>
+    </a>
+    <a href="#" class="nav-item" data-section="slider" onclick="showSection('slider')">
+      <i class="fas fa-images"></i><span>السلايدر</span>
+    </a>
+    <a href="#" class="nav-item" data-section="orders" onclick="showSection('orders')">
+      <i class="fas fa-shopping-bag"></i><span>الطلبات</span>
+      <span class="badge" id="pending-badge">0</span>
+    </a>
+    <a href="#" class="nav-item" data-section="subscribers" onclick="showSection('subscribers')">
+      <i class="fas fa-users"></i><span>المشتركون</span>
+    </a>
+    <a href="#" class="nav-item" data-section="coupons" onclick="showSection('coupons')">
+      <i class="fas fa-ticket-alt"></i><span>الكوبونات</span>
+    </a>
+    <a href="#" class="nav-item" data-section="reviews" onclick="showSection('reviews')">
+      <i class="fas fa-star"></i><span>التقييمات</span>
+    </a>
+    <a href="#" class="nav-item" data-section="settings" onclick="showSection('settings')">
+      <i class="fas fa-cog"></i><span>الإعدادات</span>
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <button onclick="adminLogout()" class="btn-logout"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
+  </div>
+</aside>
+
+<!-- ===== MAIN CONTENT ===== -->
+<div class="main-content" id="main-content">
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+    <div class="topbar-title" id="topbar-title">لوحة التحكم</div>
+    <div class="topbar-actions">
+      <div class="admin-info">
+        <i class="fas fa-user-shield"></i>
+        <span id="admin-name">المسؤول</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== DASHBOARD SECTION ===== -->
+  <section class="section active" id="section-dashboard">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:linear-gradient(135deg,#6c63ff,#5a52d5)"><i class="fas fa-shopping-bag"></i></div>
+        <div class="stat-info">
+          <div class="stat-value" id="stat-orders">0</div>
+          <div class="stat-label">إجمالي الطلبات</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:linear-gradient(135deg,#43e97b,#38f9d7)"><i class="fas fa-dollar-sign"></i></div>
+        <div class="stat-info">
+          <div class="stat-value" id="stat-revenue">0 د.م.</div>
+          <div class="stat-label">إجمالي الإيرادات</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:linear-gradient(135deg,#f093fb,#f5576c)"><i class="fas fa-box"></i></div>
+        <div class="stat-info">
+          <div class="stat-value" id="stat-products">0</div>
+          <div class="stat-label">عدد المنتجات</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:linear-gradient(135deg,#4facfe,#00f2fe)"><i class="fas fa-users"></i></div>
+        <div class="stat-info">
+          <div class="stat-value" id="stat-customers">0</div>
+          <div class="stat-label">العملاء المسجلون</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="charts-grid charts-grid-single">
+      <div class="chart-card">
+        <div class="card-header">
+          <h3>المبيعات</h3>
+          <div class="chart-tabs">
+            <button class="chart-tab active" onclick="switchChart('daily')">يومي</button>
+            <button class="chart-tab" onclick="switchChart('weekly')">أسبوعي</button>
+          </div>
+        </div>
+        <div class="chart-canvas-wrap"><canvas id="sales-chart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="recent-orders-card">
+      <div class="card-header">
+        <h3>آخر الطلبات</h3>
+        <button onclick="showSection('orders')" class="btn-view-all">عرض الكل</button>
+      </div>
+      <div class="table-wrapper">
+        <table class="data-table" id="recent-orders-table">
+          <thead>
+            <tr><th>كود الطلب</th><th>العميل</th><th>المبلغ</th><th>الحالة</th><th>التاريخ</th></tr>
+          </thead>
+          <tbody id="recent-orders-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== PRODUCTS SECTION ===== -->
+  <section class="section" id="section-products">
+    <div class="section-header-bar">
+      <h2>إدارة المنتجات</h2>
+      <button class="btn-add" onclick="openProductForm()"><i class="fas fa-plus"></i> إضافة منتج</button>
+    </div>
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr><th>الصورة</th><th>اسم المنتج</th><th>القسم</th><th>السعر</th><th>الحالة</th><th>الإجراءات</th></tr>
+        </thead>
+        <tbody id="products-table-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===== CATEGORIES SECTION ===== -->
+  <section class="section" id="section-categories">
+    <div class="section-header-bar">
+      <h2>إدارة الأقسام</h2>
+      <button class="btn-add" onclick="openCategoryForm()"><i class="fas fa-plus"></i> إضافة قسم</button>
+    </div>
+    <div class="categories-list" id="categories-list"></div>
+  </section>
+
+  <!-- ===== PACKAGES SECTION ===== -->
+  <section class="section" id="section-packages">
+    <div class="section-header-bar">
+      <h2>إدارة الباقات</h2>
+      <button class="btn-add" onclick="openPackageForm()"><i class="fas fa-plus"></i> إضافة باقة</button>
+    </div>
+    <div class="packages-list" id="packages-list"></div>
+  </section>
+
+  <!-- ===== SLIDER SECTION ===== -->
+  <section class="section" id="section-slider">
+    <div class="section-header-bar">
+      <h2>إدارة السلايدر</h2>
+      <button class="btn-add" onclick="openSliderForm()"><i class="fas fa-plus"></i> إضافة شريحة</button>
+    </div>
+    <div class="slider-list" id="slider-list"></div>
+  </section>
+
+  <!-- ===== ORDERS SECTION ===== -->
+  <section class="section" id="section-orders">
+    <div class="section-header-bar">
+      <h2>إدارة الطلبات</h2>
+      <div class="orders-filter">
+        <button class="btn-add" onclick="exportOrdersCSV()" style="background:linear-gradient(135deg,#16a34a,#15803d)"><i class="fas fa-file-excel"></i> تصدير Excel/CSV</button>
+        <select id="orders-status-filter" onchange="filterOrders()">
+          <option value="all">كل الطلبات</option>
+          <option value="pending">قيد الانتظار</option>
+          <option value="confirmed">مؤكد</option>
+          <option value="processing">قيد المعالجة</option>
+          <option value="shipped">تم الشحن</option>
+          <option value="delivered">تم التسليم</option>
+          <option value="cancelled">ملغي</option>
+        </select>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr><th>كود الطلب</th><th>العميل</th><th>الهاتف</th><th>المبلغ</th><th>الحالة</th><th>التاريخ</th><th>الإجراءات</th></tr>
+        </thead>
+        <tbody id="orders-table-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===== SUBSCRIBERS SECTION ===== -->
+  <section class="section" id="section-subscribers">
+    <div class="section-header-bar">
+      <h2>المشتركون</h2>
+      <div class="orders-filter">
+        <input type="text" id="subscribers-search" placeholder="بحث بالاسم أو البريد أو الهاتف..." oninput="filterSubscribers()" style="padding:10px 14px;border-radius:8px;border:1px solid var(--border);background:var(--dark-3);color:var(--text-primary);min-width:240px"/>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr><th>الاسم الكامل</th><th>البريد الإلكتروني</th><th>رقم الهاتف</th><th>تاريخ الاشتراك</th><th>الإجراءات</th></tr>
+        </thead>
+        <tbody id="subscribers-table-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===== COUPONS SECTION ===== -->
+  <section class="section" id="section-coupons">
+    <div class="section-header-bar">
+      <h2>إدارة الكوبونات</h2>
+      <button class="btn-add" onclick="openCouponForm()"><i class="fas fa-plus"></i> إضافة كوبون</button>
+    </div>
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr><th>الكود</th><th>نوع الخصم</th><th>القيمة</th><th>الاستخدامات</th><th>للمشتركين فقط</th><th>الحالة</th><th>الإجراءات</th></tr>
+        </thead>
+        <tbody id="coupons-table-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+
+  <!-- ===== REVIEWS SECTION ===== -->
+  <section class="section" id="section-reviews">
+    <div class="section-header-bar">
+      <h2>إدارة التقييمات والتعليقات</h2>
+    </div>
+    <div class="settings-card" style="margin-bottom:24px">
+      <h3><i class="fas fa-star"></i> إضافة تقييم / تعليق لمنتج</h3>
+      <div class="form-row">
+        <div class="form-group"><label>المنتج *</label><select id="review-product"></select></div>
+        <div class="form-group"><label>اسم صاحب التقييم *</label><input type="text" id="review-author" placeholder="مثال: أحمد م."/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>عدد النجوم *</label>
+          <select id="review-rating">
+            <option value="5">5 نجوم</option><option value="4">4 نجوم</option>
+            <option value="3">3 نجوم</option><option value="2">نجمتان</option><option value="1">نجمة واحدة</option>
+          </select>
+        </div>
+        <div class="form-group"><label>التاريخ الظاهر (اختياري)</label><input type="text" id="review-date" placeholder="قبل يومين"/></div>
+      </div>
+      <div class="form-group"><label>التعليق *</label><textarea id="review-comment" rows="3" placeholder="اكتب التعليق..."></textarea></div>
+      <button onclick="addAdminReview()" class="btn-save"><i class="fas fa-plus"></i> إضافة التقييم</button>
+    </div>
+    <div class="section-header-bar">
+      <h2 style="font-size:1.1rem">التقييمات الحالية</h2>
+      <select id="review-filter-product" onchange="renderAdminReviews()" style="background:var(--dark-4);border:1px solid var(--border);color:var(--text);padding:8px 14px;border-radius:10px"></select>
+    </div>
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead><tr><th>المنتج</th><th>الاسم</th><th>النجوم</th><th>التعليق</th><th>الإجراءات</th></tr></thead>
+        <tbody id="reviews-table-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===== SETTINGS SECTION ===== -->
+  <section class="section" id="section-settings">
+    <h2 style="margin-bottom:28px">إعدادات المتجر</h2>
+    <div class="settings-grid">
+      <div class="settings-card">
+        <h3><i class="fas fa-image"></i> شعار المتجر</h3>
+        <div class="logo-preview" id="logo-preview">
+          <img id="current-logo" src="" alt="الشعار الحالي" style="display:none;max-height:100px"/>
+          <div id="no-logo" style="color:rgba(255,255,255,0.4);text-align:center"><i class="fas fa-image" style="font-size:3rem;margin-bottom:10px;display:block"></i>لا يوجد شعار</div>
+        </div>
+        <div class="upload-area" id="logo-upload-area" onclick="document.getElementById('logo-file').click()">
+          <i class="fas fa-cloud-upload-alt"></i>
+          <p>انقر لرفع الشعار</p>
+          <span>PNG, JPG, SVG - حد أقصى 2MB</span>
+        </div>
+        <input type="file" id="logo-file" accept="image/*" style="display:none" onchange="uploadLogo(event)"/>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:10px">
+          <span style="font-size:0.85rem;color:var(--text-muted);white-space:nowrap">أو رابط الشعار:</span>
+          <input type="text" id="logo-url-input" placeholder="https://example.com/logo.png" style="flex:1;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg-secondary);color:var(--text-primary);font-size:0.85rem"/>
+          <button onclick="saveLogoFromUrl()" style="padding:8px 14px;border-radius:8px;background:var(--primary);color:#fff;border:none;cursor:pointer;font-size:0.85rem">حفظ</button>
+        </div>
+        <div class="upload-progress" id="logo-progress" style="display:none">
+          <div class="progress-bar"><div class="progress-fill" id="logo-progress-fill"></div></div>
+          <span id="logo-progress-text">0%</span>
+        </div>
+      </div>
+      <div class="settings-card">
+        <h3><i class="fas fa-store"></i> معلومات المتجر</h3>
+        <div class="form-group">
+          <label>اسم المتجر</label>
+          <input type="text" id="store-name" placeholder="اسم متجرك"/>
+        </div>
+        <div class="form-group">
+          <label>البريد الإلكتروني</label>
+          <input type="email" id="store-email" placeholder="info@store.com"/>
+        </div>
+        <div class="form-group">
+          <label>رقم الهاتف</label>
+          <input type="tel" id="store-phone" placeholder="+212 6 00 00 00 00"/>
+        </div>
+        <div class="form-group">
+          <label>العنوان (يظهر في قسم تواصل معنا وأسفل المتجر)</label>
+          <input type="text" id="store-address" placeholder="مثال: الدار البيضاء، المغرب"/>
+        </div>
+        <div class="form-group">
+          <label>شريط الإعلان (شريط قصير يظهر فوق الباقات في المتجر)</label>
+          <input type="text" id="store-announcement" placeholder="مثال: توصيل مجاني عند الشراء بأكثر من 230 د.م."/>
+        </div>
+        <div class="form-group">
+          <label>رقم واتساب للدعم (يظهر كزر عائم في المتجر لطلب المساعدة)</label>
+          <input type="text" id="store-whatsapp-support" placeholder="مثال: 2126XXXXXXXX"/>
+        </div>
+        <button onclick="saveStoreSettings()" class="btn-save"><i class="fas fa-save"></i> حفظ الإعدادات</button>
+      </div>
+      <div class="settings-card">
+        <h3><i class="fas fa-share-nodes"></i> روابط التواصل الاجتماعي</h3>
+        <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:12px">هذه الروابط تظهر على رموز التواصل أسفل المتجر. اترك الحقل فارغاً لإخفاء الرمز.</p>
+        <div class="form-group"><label><i class="fab fa-instagram"></i> Instagram</label><input type="text" id="social-instagram" placeholder="https://instagram.com/..."/></div>
+        <div class="form-group"><label><i class="fab fa-twitter"></i> Twitter / X</label><input type="text" id="social-twitter" placeholder="https://twitter.com/..."/></div>
+        <div class="form-group"><label><i class="fab fa-facebook"></i> Facebook</label><input type="text" id="social-facebook" placeholder="https://facebook.com/..."/></div>
+        <div class="form-group"><label><i class="fab fa-whatsapp"></i> WhatsApp</label><input type="text" id="social-whatsapp" placeholder="https://wa.me/2126..."/></div>
+        <button onclick="saveStoreSettings()" class="btn-save"><i class="fas fa-save"></i> حفظ الروابط</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ===== MODALS ===== -->
+<!-- Product Modal -->
+<div class="modal-overlay" id="product-modal-overlay" onclick="closeModal('product-modal')"></div>
+<div class="admin-modal" id="product-modal">
+  <div class="modal-header">
+    <h3 id="product-modal-title">إضافة منتج</h3>
+    <button onclick="closeModal('product-modal')" class="close-modal"><i class="fas fa-times"></i></button>
+  </div>
+  <div class="modal-body">
+    <input type="hidden" id="product-id"/>
+    <div class="form-row">
+      <div class="form-group">
+        <label>اسم المنتج *</label>
+        <input type="text" id="product-name" placeholder="اسم المنتج" required/>
+      </div>
+      <div class="form-group">
+        <label>القسم</label>
+        <select id="product-category"><option value="">اختر القسم</option></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>السعر *</label>
+        <input type="number" id="product-price" placeholder="0.00" min="0" step="0.01" required/>
+      </div>
+      <div class="form-group">
+        <label>السعر القديم (اختياري)</label>
+        <input type="number" id="product-old-price" placeholder="0.00" min="0" step="0.01"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>وصف المنتج</label>
+      <textarea id="product-desc" placeholder="وصف تفصيلي للمنتج..." rows="3"></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>شارة (مثل: جديد، خصم)</label>
+        <input type="text" id="product-badge" placeholder="جديد"/>
+      </div>
+      <div class="form-group">
+        <label>الحالة</label>
+        <select id="product-status">
+          <option value="active">نشط</option>
+          <option value="inactive">غير نشط</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>صورة المنتج الرئيسية</label>
+      <div class="image-upload-area" onclick="document.getElementById('product-image-file').click()">
+        <img id="product-image-preview" src="" alt="" style="display:none;max-height:150px;border-radius:8px"/>
+        <div id="product-upload-placeholder"><i class="fas fa-cloud-upload-alt"></i><p>انقر لرفع الصورة</p></div>
+      </div>
+      <input type="file" id="product-image-file" accept="image/*" style="display:none" onchange="previewProductImage(event)"/>
+      <button type="button" class="btn-remove-img" onclick="clearProductImage()"><i class="fas fa-trash"></i> حذف الصورة</button>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+        <span style="font-size:0.85rem;color:var(--text-muted);white-space:nowrap">أو رابط الصورة:</span>
+        <input type="text" id="product-image-url" placeholder="https://example.com/image.jpg" style="flex:1;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg-secondary);color:var(--text-primary);font-size:0.85rem" oninput="onProductImageUrlInput(this.value)"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>صور المنتج الإضافية (حتى 8 صور)</label>
+      <div class="gallery-uploader" id="product-gallery-grid"></div>
+      <input type="file" id="product-gallery-file" accept="image/*" multiple style="display:none" onchange="onProductGalleryFiles(event)"/>
+      <p class="dim-hint">📷 يمكنك رفع حتى 8 صور إضافية تظهر في معرض صفحة المنتج. المقاس المفضّل: صورة مربعة 1000×1000 بكسل.</p>
+    </div>
+    <div class="form-group">
+      <label>طريقة عرض المنتج في صفحته</label>
+      <select id="product-layout">
+        <option value="classic">كلاسيكي — الصور المصغّرة أسفل الصورة والوصف بالجانب</option>
+        <option value="side-thumbs">الصور المصغّرة بجانب الصورة الرئيسية</option>
+        <option value="desc-below">الوصف بعرض كامل أسفل الصور</option>
+        <option value="grid">معرض شبكي لكل الصور والوصف بالأسفل</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>المنتجات ذات الصلة (تظهر فوق آراء العملاء في صفحة المنتج)</label>
+      <select id="product-related-mode" onchange="onRelatedModeChange()">
+        <option value="auto">تلقائي — منتجات من نفس القسم</option>
+        <option value="manual">يدوي — أختار المنتجات بنفسي</option>
+      </select>
+      <div id="product-related-box" style="display:none;margin-top:10px;max-height:200px;overflow:auto;border:1px solid var(--border);border-radius:10px;padding:10px"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>الكمية المتوفرة في المخزون</label>
+        <input type="number" id="product-stock" placeholder="100" min="0" step="1"/>
+      </div>
+      <div class="form-group">
+        <label>التقييم (من 5)</label>
+        <input type="number" id="product-rating" placeholder="4.5" min="0" max="5" step="0.1"/>
+      </div>
+      <div class="form-group">
+        <label>عدد التقييمات</label>
+        <input type="number" id="product-rating-count" placeholder="0" min="0" step="1"/>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button onclick="closeModal('product-modal')" class="btn-cancel">إلغاء</button>
+      <button onclick="saveProduct()" class="btn-save"><i class="fas fa-save"></i> حفظ المنتج</button>
+    </div>
+  </div>
+</div>
+
+<!-- Category Modal -->
+<div class="modal-overlay" id="category-modal-overlay" onclick="closeModal('category-modal')"></div>
+<div class="admin-modal" id="category-modal">
+  <div class="modal-header">
+    <h3 id="category-modal-title">إضافة قسم</h3>
+    <button onclick="closeModal('category-modal')" class="close-modal"><i class="fas fa-times"></i></button>
+  </div>
+  <div class="modal-body">
+    <input type="hidden" id="category-id"/>
+    <div class="form-group"><label>اسم القسم *</label><input type="text" id="category-name" placeholder="اسم القسم" required/></div>
+    <div class="form-group"><label>أيقونة (Emoji)</label><input type="text" id="category-icon" placeholder="🛍️"/></div>
+    <div class="form-group">
+      <label>صورة القسم (اختياري)</label>
+      <div class="image-upload-area" onclick="document.getElementById('category-image-file').click()">
+        <img id="category-image-preview" src="" alt="" style="display:none;max-height:150px;border-radius:8px"/>
+        <div id="category-upload-placeholder"><i class="fas fa-cloud-upload-alt"></i><p>انقر لرفع صورة القسم</p></div>
+      </div>
+      <input type="file" id="category-image-file" accept="image/*" style="display:none" onchange="previewCategoryImage(event)"/>
+      <button type="button" class="btn-remove-img" onclick="clearCategoryImage()"><i class="fas fa-trash"></i> حذف الصورة</button>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+        <span style="font-size:0.85rem;color:var(--text-muted);white-space:nowrap">أو رابط الصورة:</span>
+        <input type="text" id="category-image" placeholder="https://example.com/category.jpg" style="flex:1;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--dark-4);color:var(--text);font-size:0.85rem" oninput="onCategoryImageUrlInput(this.value)"/>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button onclick="closeModal('category-modal')" class="btn-cancel">إلغاء</button>
+      <button onclick="saveCategory()" class="btn-save"><i class="fas fa-save"></i> حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Package Modal -->
+<div class="modal-overlay" id="package-modal-overlay" onclick="closeModal('package-modal')"></div>
+<div class="admin-modal" id="package-modal">
+  <div class="modal-header">
+    <h3 id="package-modal-title">إضافة باقة</h3>
+    <button onclick="closeModal('package-modal')" class="close-modal"><i class="fas fa-times"></i></button>
+  </div>
+  <div class="modal-body">
+    <input type="hidden" id="package-id"/>
+    <div class="form-row">
+      <div class="form-group"><label>اسم الباقة *</label><input type="text" id="package-name" placeholder="اسم الباقة" required/></div>
+      <div class="form-group"><label>السعر *</label><input type="number" id="package-price" placeholder="0.00" min="0" step="0.01" required/></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>المدة</label><input type="text" id="package-period" placeholder="شهر / سنة"/></div>
+      <div class="form-group"><label>مميزة (الأكثر شعبية)</label><select id="package-featured"><option value="false">لا</option><option value="true">نعم</option></select></div>
+      <div class="form-group"><label>الأكثر مبيعاً</label><select id="package-bestseller"><option value="false">لا</option><option value="true">نعم</option></select></div>
+    </div>
+    <div class="form-group"><label>المميزات (سطر لكل ميزة)</label><textarea id="package-features" placeholder="ميزة 1&#10;ميزة 2&#10;ميزة 3" rows="5"></textarea></div>
+    <div class="form-group">
+      <label>صورة/أيقونة الباقة (اختياري)</label>
+      <div class="image-upload-area" onclick="document.getElementById('package-image-file').click()">
+        <img id="package-image-preview" src="" alt="" style="display:none;max-height:150px;border-radius:8px"/>
+        <div id="package-upload-placeholder"><i class="fas fa-cloud-upload-alt"></i><p>انقر لرفع صورة الباقة</p></div>
+      </div>
+      <input type="file" id="package-image-file" accept="image/*" style="display:none" onchange="previewPackageImage(event)"/>
+      <button type="button" class="btn-remove-img" onclick="clearPackageImage()"><i class="fas fa-trash"></i> حذف الصورة</button>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+        <span style="font-size:0.85rem;color:var(--text-muted);white-space:nowrap">أو رابط الصورة:</span>
+        <input type="text" id="package-image" placeholder="https://example.com/package.png" style="flex:1;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--dark-4);color:var(--text);font-size:0.85rem" oninput="onPackageImageUrlInput(this.value)"/>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button onclick="closeModal('package-modal')" class="btn-cancel">إلغاء</button>
+      <button onclick="savePackage()" class="btn-save"><i class="fas fa-save"></i> حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Slider Modal -->
+<div class="modal-overlay" id="slider-modal-overlay" onclick="closeModal('slider-modal')"></div>
+<div class="admin-modal" id="slider-modal">
+  <div class="modal-header">
+    <h3 id="slider-modal-title">إضافة شريحة</h3>
+    <button onclick="closeModal('slider-modal')" class="close-modal"><i class="fas fa-times"></i></button>
+  </div>
+  <div class="modal-body">
+    <input type="hidden" id="slider-id"/>
+    <div class="form-group"><label>العنوان الرئيسي</label><input type="text" id="slider-title" placeholder="عنوان الشريحة"/></div>
+    <div class="form-group"><label>العنوان الفرعي</label><input type="text" id="slider-subtitle" placeholder="وصف قصير"/></div>
+    <div class="form-row">
+      <div class="form-group"><label>نص الزر</label><input type="text" id="slider-btn-text" placeholder="تسوق الآن"/></div>
+      <div class="form-group"><label>رابط الزر</label><input type="text" id="slider-btn-link" placeholder="#products"/></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>الترتيب</label><input type="number" id="slider-order" placeholder="1" min="1"/></div>
+      <div class="form-group"><label>مدة العرض (بالثواني) قبل التبديل</label><input type="number" id="slider-duration" placeholder="5" min="2" value="5"/></div>
+    </div>
+    <div class="form-group">
+      <label>صورة الخلفية (للحاسوب)</label>
+      <div class="image-upload-area" onclick="document.getElementById('slider-image-file').click()">
+        <img id="slider-image-preview" src="" alt="" style="display:none;max-height:150px;border-radius:8px"/>
+        <div id="slider-upload-placeholder"><i class="fas fa-cloud-upload-alt"></i><p>انقر لرفع الصورة</p></div>
+      </div>
+      <input type="file" id="slider-image-file" accept="image/*" style="display:none" onchange="previewSliderImage(event)"/>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+        <span style="font-size:0.85rem;color:var(--text-muted);white-space:nowrap">رابط الصورة (حاسوب):</span>
+        <input type="text" id="slider-image-url" placeholder="https://example.com/banner-desktop.jpg" style="flex:1;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg-secondary);color:var(--text-primary);font-size:0.85rem" oninput="onSliderImageUrlInput(this.value)"/>
+      </div>
+      <p class="dim-hint">📐 المقاس المثالي: 1600×600 بكسل — الحد الأقصى: 1920×900 بكسل (أي صورة أكبر سيتم رفضها).</p>
+      <button type="button" class="btn-remove-img" onclick="clearSliderImage()"><i class="fas fa-trash"></i> حذف صورة الحاسوب</button>
+    </div>
+    <div class="form-group">
+      <label>صورة الخلفية (للهاتف) - اختياري</label>
+      <div class="image-upload-area" onclick="document.getElementById('slider-image-file-mobile').click()">
+        <img id="slider-image-preview-mobile" src="" alt="" style="display:none;max-height:150px;border-radius:8px"/>
+        <div id="slider-upload-placeholder-mobile"><i class="fas fa-cloud-upload-alt"></i><p>انقر لرفع صورة الهاتف</p></div>
+      </div>
+      <input type="file" id="slider-image-file-mobile" accept="image/*" style="display:none" onchange="previewSliderImageMobile(event)"/>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+        <span style="font-size:0.85rem;color:var(--text-muted);white-space:nowrap">رابط الصورة (هاتف):</span>
+        <input type="text" id="slider-image-url-mobile" placeholder="https://example.com/banner-mobile.jpg" style="flex:1;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg-secondary);color:var(--text-primary);font-size:0.85rem" oninput="onSliderMobileUrlInput(this.value)"/>
+      </div>
+      <p class="dim-hint">📐 المقاس المثالي: 800×1000 بكسل — الحد الأقصى: 1200×1600 بكسل (أي صورة أكبر سيتم رفضها).</p>
+      <button type="button" class="btn-remove-img" onclick="clearSliderMobileImage()"><i class="fas fa-trash"></i> حذف صورة الهاتف</button>
+    </div>
+    <div class="modal-actions">
+      <button onclick="closeModal('slider-modal')" class="btn-cancel">إلغاء</button>
+      <button onclick="saveSlide()" class="btn-save"><i class="fas fa-save"></i> حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Coupon Modal -->
+<div class="modal-overlay" id="coupon-modal-overlay" onclick="closeModal('coupon-modal')"></div>
+<div class="admin-modal" id="coupon-modal">
+  <div class="modal-header">
+    <h3 id="coupon-modal-title">إضافة كوبون</h3>
+    <button onclick="closeModal('coupon-modal')" class="close-modal"><i class="fas fa-times"></i></button>
+  </div>
+  <div class="modal-body">
+    <input type="hidden" id="coupon-id"/>
+    <div class="form-row">
+      <div class="form-group"><label>كود الكوبون *</label><input type="text" id="coupon-code" placeholder="مثال: SAVE20" style="text-transform:uppercase" required/></div>
+      <div class="form-group"><label>نوع الخصم *</label><select id="coupon-type"><option value="percentage">نسبة مئوية (%)</option><option value="fixed">مبلغ ثابت (د.م.)</option></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>قيمة الخصم *</label><input type="number" id="coupon-value" placeholder="20" min="0" required/></div>
+      <div class="form-group"><label>الحد الأقصى للاستخدام</label><input type="number" id="coupon-max-uses" placeholder="100" min="1"/></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>للمشتركين فقط</label><select id="coupon-subscribers-only"><option value="false">لا - للجميع</option><option value="true">نعم - للمشتركين فقط</option></select></div>
+      <div class="form-group"><label>الحالة</label><select id="coupon-active"><option value="true">فعال</option><option value="false">غير فعال</option></select></div>
+    </div>
+    <div class="modal-actions">
+      <button onclick="closeModal('coupon-modal')" class="btn-cancel">إلغاء</button>
+      <button onclick="saveCoupon()" class="btn-save"><i class="fas fa-save"></i> حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Order Detail Modal -->
+<div class="modal-overlay" id="order-modal-overlay" onclick="closeModal('order-modal')"></div>
+<div class="admin-modal wide-modal" id="order-modal">
+  <div class="modal-header">
+    <h3>تفاصيل الطلب</h3>
+    <button onclick="closeModal('order-modal')" class="close-modal"><i class="fas fa-times"></i></button>
+  </div>
+  <div class="modal-body" id="order-detail-content"></div>
+</div>
+
+<!-- Toast -->
+<div class="admin-toast" id="admin-toast"></div>
+
+<!-- Ambient Particles -->
+<div id="admin-particles" style="position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden"></div>
+<script>
+(function() {
+  const c = document.getElementById('admin-particles');
+  const clrs = ['rgba(124,58,237,0.08)','rgba(244,63,94,0.06)','rgba(16,185,129,0.06)','rgba(6,182,212,0.07)'];
+  for (let i = 0; i < 10; i++) {
+    const p = document.createElement('div');
+    const s = Math.random()*200+80;
+    p.style.cssText = `position:absolute;width:${s}px;height:${s}px;border-radius:50%;background:${clrs[i%clrs.length]};left:${Math.random()*100}%;top:${Math.random()*100}%;filter:blur(${s*0.45}px);animation:float ${7+Math.random()*8}s ease-in-out infinite;animation-delay:-${Math.random()*12}s;`;
+    c.appendChild(p);
+  }
+})();
+</script>
+
+<script type="module" src="js/admin.js"></script>
+</body>
+</html>
